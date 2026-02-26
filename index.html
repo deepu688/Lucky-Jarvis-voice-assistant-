@@ -3,120 +3,86 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LUCKY-EXPLOITS AI LIVE</title>
+    <title>LUCKY-AI V12 ULTIMATE</title>
     <style>
         :root { --glow: #00f2ff; --bg: #000a12; }
         body { background: var(--bg); color: var(--glow); font-family: 'Segoe UI', sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
-        
-        /* Arc Reactor Interface */
-        .hud { height: 40%; display: flex; flex-direction: column; align-items: center; justify-content: center; background: radial-gradient(circle, rgba(0,242,255,0.1) 0%, transparent 70%); }
-        .reactor { width: 120px; height: 120px; border: 4px solid var(--glow); border-radius: 50%; box-shadow: 0 0 30px var(--glow); animation: pulse 2s infinite; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px; }
-        @keyframes pulse { 0% { transform: scale(1); opacity: 0.8; } 50% { transform: scale(1.05); opacity: 1; } 100% { transform: scale(1); opacity: 0.8; } }
-
-        /* Chat Display */
-        #chat { flex-grow: 1; padding: 15px; overflow-y: auto; background: rgba(0,0,0,0.5); border-top: 1px solid var(--glow); font-family: 'Courier New', monospace; }
-        .msg { margin-bottom: 10px; padding: 8px; border-left: 3px solid var(--glow); animation: slideIn 0.3s; }
-        @keyframes slideIn { from { transform: translateX(-10px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-        .code-box { background: #001a1a; color: #0f0; padding: 10px; border-radius: 5px; border: 1px dashed #0f0; white-space: pre-wrap; margin: 10px 0; font-size: 12px; }
-
-        /* Control Panel */
-        .controls { padding: 15px; background: #000; display: flex; gap: 10px; border-top: 2px solid var(--glow); padding-bottom: 30px; }
+        .header { padding: 15px; border-bottom: 2px solid var(--glow); text-align: center; text-shadow: 0 0 10px var(--glow); font-weight: bold; }
+        #chat { flex-grow: 1; padding: 20px; overflow-y: auto; background: rgba(0,0,0,0.8); scroll-behavior: smooth; }
+        .msg { margin-bottom: 15px; padding: 10px; border-left: 3px solid var(--glow); line-height: 1.5; }
+        .user-msg { border-left-color: #fff; color: #fff; }
+        .code-snippet { background: #001a1a; color: #0f0; padding: 15px; border-radius: 8px; border: 1px dashed #0f0; white-space: pre-wrap; margin: 10px 0; font-family: monospace; font-size: 13px; }
+        .footer { padding: 15px; display: flex; gap: 10px; background: #000; border-top: 1px solid #333; padding-bottom: 30px; }
         input { flex: 1; background: #001520; border: 1px solid var(--glow); color: #fff; padding: 12px; border-radius: 8px; outline: none; }
-        button { background: var(--glow); color: #000; border: none; padding: 10px 15px; font-weight: bold; border-radius: 8px; cursor: pointer; }
-        #micBtn.listening { background: #ff0055; box-shadow: 0 0 15px #ff0055; animation: blink 1s infinite; }
-        @keyframes blink { 50% { opacity: 0.5; } }
+        button { background: var(--glow); color: #000; border: none; padding: 10px 20px; font-weight: bold; border-radius: 8px; cursor: pointer; }
+        #mic.active { background: #ff0055; color: white; animation: pulse 1s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
     </style>
 </head>
 <body>
 
-    <div class="hud">
-        <div class="reactor" id="ai-circle">ONLINE</div>
-        <p id="status" style="margin-top: 15px; letter-spacing: 2px;">SYSTEM READY, MASTER LUCKY</p>
-    </div>
-
+    <div class="header">LUCKY-EXPLOITS AI v12.0 (LIVE)</div>
     <div id="chat">
-        <div class="msg">[SYSTEM] Satellite Link Active. Neural Core Online.</div>
+        <div class="msg"><b>JARVIS:</b> Master Lucky, naya satellite uplink (API) connect ho gaya hai. Main ab fully online hoon. Hukum karein!</div>
     </div>
 
-    <div class="controls">
+    <div class="footer">
         <input type="text" id="userInput" placeholder="Hukum karein, Sir...">
-        <button id="micBtn" onclick="startVoice()">🎤 Talk</button>
+        <button id="mic" onclick="startVoice()">🎤 MIC</button>
         <button onclick="askAI()">SEND</button>
     </div>
 
-    
     <script type="module">
         import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
 
-        // AAPKI API KEY
-        const API_KEY = "AIzaSyAUJzBFH1nuiejUBNvQTPdPB1hZEdkHezU";
+        // AAPKI NEW API KEY LOADED
+        const API_KEY = "AIzaSyBUVahJ-kSYMu8oLjaCh5yfj8agx46oPj0"; 
         const genAI = new GoogleGenerativeAI(API_KEY);
-        const chat = document.getElementById('chat');
+        const chatBox = document.getElementById('chat');
 
-        // 🔊 Jarvis Voice
-        function speak(text) {
-            window.speechSynthesis.cancel(); // Clear previous speech
-            const utter = new SpeechSynthesisUtterance(text.replace(/```[\s\S]*?```/g, 'Code generate ho gaya hai.'));
+        window.speak = (text) => {
+            window.speechSynthesis.cancel();
+            const utter = new SpeechSynthesisUtterance(text.replace(/```[\s\S]*?```/g, 'Sir, code generate ho gaya hai.'));
             utter.lang = 'hi-IN';
-            utter.pitch = 0.9; // Deep voice like Jarvis
-            utter.rate = 1;
             window.speechSynthesis.speak(utter);
-        }
+        };
 
-        // 🎤 Voice Assistant Logic
         window.startVoice = () => {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            if (!SpeechRecognition) {
-                alert("Sir, aapka browser voice support nahi karta. Chrome use karein.");
-                return;
-            }
+            if (!SpeechRecognition) return alert("Chrome use karein, Sir.");
             const rec = new SpeechRecognition();
             rec.lang = 'hi-IN';
-            const btn = document.getElementById('micBtn');
-
-            rec.onstart = () => { btn.classList.add('listening'); document.getElementById('status').innerText = "LISTENING..."; };
-            rec.onend = () => { btn.classList.remove('listening'); document.getElementById('status').innerText = "PROCESSING..."; };
-            
+            rec.onstart = () => document.getElementById('mic').classList.add('active');
+            rec.onend = () => document.getElementById('mic').classList.remove('active');
             rec.onresult = (e) => {
-                const transcript = e.results[0][0].transcript;
-                document.getElementById('userInput').value = transcript;
+                document.getElementById('userInput').value = e.results[0][0].transcript;
                 askAI();
             };
             rec.start();
         };
 
-        // 🧠 Pro Coding & Knowledge Logic
-        window.askAI = async function() {
+        window.askAI = async () => {
             const input = document.getElementById('userInput').value;
             if(!input) return;
 
-            chat.innerHTML += `<div class="msg" style="border-left-color: #fff; color: #fff;"><b>SIR:</b> ${input}</div>`;
+            chatBox.innerHTML += `<div class="msg user-msg"><b>SIR:</b> ${input}</div>`;
             document.getElementById('userInput').value = "";
-            chat.scrollTop = chat.scrollHeight;
+            chatBox.scrollTop = chatBox.scrollHeight;
 
             try {
                 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-                const prompt = `Aap Lucky-Exploits AI hain, Master Lucky ke assistant. 
-                - Live internet ki har knowledge use karein.
-                - Agar user code mange toh professional code likhein.
-                - Hindi-English mix mein baat karein.
-                Master's Request: ${input}`;
-
-                const result = await model.generateContent(prompt);
+                const result = await model.generateContent(`You are Jarvis, a pro AI assistant for Master Lucky. Solve everything, write professional code, and speak in Hindi-English. Master says: ${input}`);
                 const response = await result.response;
                 const text = response.text();
 
-                // Format Code blocks
-                let formatted = text.replace(/```([\s\S]*?)```/g, '<div class="code-box">$1</div>');
-                
-                chat.innerHTML += `<div class="msg"><b>JARVIS:</b> ${formatted}</div>`;
-                document.getElementById('status').innerText = "SATELLITE ACTIVE";
+                let html = text.replace(/```([\s\S]*?)```/g, '<div class="code-snippet">$1</div>');
+                chatBox.innerHTML += `<div class="msg"><b>JARVIS:</b> ${html}</div>`;
                 speak(text);
 
             } catch (err) {
-                chat.innerHTML += `<div class="msg" style="color:red;">[ERROR] Uplink Failed. Sir, please check internet or API settings.</div>`;
+                chatBox.innerHTML += `<div class="msg" style="color:red;">[CRITICAL ERROR] Connection failed. Sir, please check if your internet is fast or GitHub link is HTTPS.</div>`;
             }
-            chat.scrollTop = chat.scrollHeight;
+            chatBox.scrollTop = chatBox.scrollHeight;
         };
     </script>
 </body>
