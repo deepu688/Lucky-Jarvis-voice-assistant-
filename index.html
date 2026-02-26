@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LUCKY-EXPLOITS AI LIVE</title>
+    <style>
+        :root { --glow: #00f2ff; --bg: #000a12; }
+        body { background: var(--bg); color: var(--glow); font-family: 'Segoe UI', sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+        header { padding: 10px; border-bottom: 2px solid var(--glow); text-align: center; text-shadow: 0 0 10px var(--glow); font-weight: bold; }
+        #chat { flex-grow: 1; padding: 20px; overflow-y: auto; background: rgba(0,0,0,0.8); scroll-behavior: smooth; border: 1px solid rgba(0, 242, 255, 0.1); margin: 10px; border-radius: 10px; }
+        .sir { color: #fff; margin-bottom: 15px; border-left: 3px solid #fff; padding-left: 10px; }
+        .jarvis { color: var(--glow); margin-bottom: 15px; border-left: 3px solid var(--glow); padding-left: 10px; }
+        .code-container { background: #000; color: #0f0; padding: 15px; border-radius: 5px; border: 1px dashed #0f0; font-family: monospace; white-space: pre-wrap; margin: 10px 0; font-size: 13px; }
+        .bar { padding: 15px; display: flex; gap: 10px; background: #000; border-top: 1px solid #333; }
+        input { flex: 1; background: #001520; border: 1px solid var(--glow); color: #fff; padding: 12px; border-radius: 5px; outline: none; }
+        button { background: var(--glow); color: #000; border: none; padding: 0 20px; font-weight: bold; border-radius: 5px; cursor: pointer; }
+        #micBtn.active { background: red; color: white; animation: pulse 1s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+    </style>
+</head>
+<body>
+
+    <header>LUCKY-EXPLOITS AI (LIVE VOICE ENGINE)</header>
+    <div id="chat">
+        <div class="jarvis">[SYSTEM] Satellite Uplink: READY. Awaiting Master Lucky's command.</div>
+    </div>
+
+    <div class="bar">
+        <input type="text" id="userInput" placeholder="Ask for code or speak...">
+        <button id="micBtn" onclick="startListening()">🎤</button>
+        <button onclick="askJarvis()">SEND</button>
+    </div>
+
+    <script type="module">
+        import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
+
+        const API_KEY = "AIzaSyAUJzBFH1nuiejUBNvQTPdPB1hZEdkHezU";
+        const genAI = new GoogleGenerativeAI(API_KEY);
+        const chat = document.getElementById('chat');
+
+        function speak(text) {
+            const utter = new SpeechSynthesisUtterance(text.replace(/```[\s\S]*?```/g, 'Code generate kar diya hai, Sir.'));
+            utter.lang = 'hi-IN';
+            window.speechSynthesis.speak(utter);
+        }
+
+        window.startListening = () => {
+            const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+            recognition.lang = 'hi-IN';
+            const btn = document.getElementById('micBtn');
+            
+            recognition.onstart = () => btn.classList.add('active');
+            recognition.onend = () => btn.classList.remove('active');
+            
+            recognition.onresult = (e) => {
+                document.getElementById('userInput').value = e.results[0][0].transcript;
+                askJarvis();
+            };
+            recognition.start();
+        }
+
+        window.askJarvis = async function() {
+            const val = document.getElementById('userInput').value;
+            if(!val) return;
+
+            chat.innerHTML += `<div class="sir"><b>SIR:</b> ${val}</div>`;
+            document.getElementById('userInput').value = "";
+            chat.scrollTop = chat.scrollHeight;
+
+            try {
+                const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+                const prompt = `You are Lucky-Exploits AI, a hyper-intelligent Jarvis-like assistant. 
+                Owner: Lucky. 
+                Task: Generate full professional code if asked. Answer in a mix of Hindi-English.
+                Request: ${val}`;
+
+                const result = await model.generateContent(prompt);
+                const response = await result.response;
+                const text = response.text();
+
+                let formatted = text.replace(/```([\s\S]*?)```/g, '<div class="code-container">$1</div>');
+                chat.innerHTML += `<div class="jarvis"><b>JARVIS:</b> ${formatted}</div>`;
+                speak(text);
+
+            } catch (err) {
+                chat.innerHTML += `<div class="jarvis" style="color:red;">[CRITICAL] Browser security is still blocking the connection. Sir, GitHub Pages par upload karke chalao, tabhi ye 100% Live Voice aur Code karega.</div>`;
+            }
+            chat.scrollTop = chat.scrollHeight;
+        }
+    </script>
+</body>
+</html>
